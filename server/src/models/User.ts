@@ -6,6 +6,11 @@ const {hash, compare} = bcrypt;
 
 
 const userSchema = new Schema({
+    username: {
+        type: String,
+        unique: true,
+        minLength: [2, 'Your username must be at least 2 characters in length']
+    },
     email: {
         type:String,
         unique: true,
@@ -15,7 +20,7 @@ const userSchema = new Schema({
         type: String,
         minLength: [6, 'Your password must be at least 6 characters in length']
     },
-    notes: [{
+    pets: [{
         type: Schema.Types.ObjectId,
         ref: 'Note'
     }]
