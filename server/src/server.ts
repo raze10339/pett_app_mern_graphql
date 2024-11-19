@@ -46,7 +46,7 @@ connection.once('open', async () => {
             }
 
             const userData = verify(pet_token, process.env.JWT_SECRET);
-
+            
             if (!userData || typeof userData === 'string') {
               return {
                 req: req,
@@ -75,4 +75,3 @@ connection.once('open', async () => {
     console.log('Express server started on', PORT);
   });
 });
-

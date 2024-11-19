@@ -1,5 +1,6 @@
 import dotenv from 'dotenv';
 import jwt from 'jsonwebtoken';
+import { GraphQLError } from 'graphql';
 dotenv.config();
 import User from '../../models/User.js';
 import { errorHandler } from '../helpers/index.js';
@@ -35,15 +36,16 @@ const auth_resolvers = {
                 const token = createToken(user._id);
                 context.res.cookie('pet_token', token, {
                     httpOnly: true,
-                    secure: process.env.NODE_ENV === 'production',
-                    sameSite: 'strict'
+                    secure: process.env.PORT ? true : false,
+                    sameSite: true
                 });
                 return {
                     user: user
                 };
             }
             catch (error) {
-                return errorHandler(error);
+                const errorMessage = errorHandler(error);
+                throw new GraphQLError(errorMessage);
             }
         },
         // Log a user in
@@ -52,21 +54,17 @@ const auth_resolvers = {
                 email: args.email
             });
             if (!user) {
-                return {
-                    errors: ['No user found with that email address']
-                };
+                throw new GraphQLError('No user found with that email address');
             }
             const valid_pass = await user.validatePassword(args.password);
             if (!valid_pass) {
-                return {
-                    errors: ['Password is incorrect']
-                };
+                throw new GraphQLError('Password is incorrect');
             }
             const token = createToken(user._id);
             context.res.cookie('pet_token', token, {
                 httpOnly: true,
-                secure: process.env.NODE_ENV === 'production',
-                sameSite: 'strict'
+                secure: process.env.PORT ? true : false,
+                sameSite: true
             });
             return {
                 user: user
@@ -76,7 +74,7 @@ const auth_resolvers = {
         logoutUser(_, __, context) {
             context.res.clearCookie('pet_token');
             return {
-                user: null
+                message: 'Logged out successfully!'
             };
         }
     }

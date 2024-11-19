@@ -1,114 +1,119 @@
-//import { User as UserInterface } from '../interfaces/User.js'; 
-//import User from "../models/User.js";
 import { Types } from 'mongoose';
-import Context from '../../interfaces/Context.js';
+
 import Pet from '../../models/Pet.js';
 import Post from '../../models/Post.js';
+import Context from '../../interfaces/Context.js';
 
 import { errorHandler } from '../helpers/index.js';
+import { GraphQLError } from 'graphql';
+
 
 type PetArguments = {
-    name?: string;
-    type?: string;
-    age?: number;
+  name?: string;
+  type?: string;
+  age?: number;
 }
 
 type PostArguments = {
-    title: string;
-    body: string;
-    pet: Types.ObjectId;
-
+  title: string;
+  body: string;
+  pet: Types.ObjectId;
 }
 
 const pet_resolvers = {
-    Query: {
+  Query: {
+    // Get all posts
+    async getAllPosts() {
+      const posts = await Post.find().populate('pet');
+      console.log('all');
 
-        //Get all post
-        async getAllPosts() {
-            const posts = await Post.find().populate('pet');
-
-            return posts;
-
-        },
-        async getUserPets(_: any, __:any, context: Context) {
-
-            if (!context.req.user) {
-                return {
-                    errors: ['You are not authorized to perform this action']
-                }
-
-        }
-        const pets = await Pet.find({
-            owner: context.req.user._id
-        });
-        return pets;
+      return posts;
     },
 
+    // Get user pets
+    async getUserPets(_: any, __: any, context: Context) {
+      console.log('user pets');
+      if (!context.req.user) {
+        return {
+          errors: ['You are not authorized to perform this action']
+        }
+      }
+
+      const pets = await Pet.find({
+        owner: context.req.user._id
+      });
+
+      return pets;
+    },
+
+    // Get pet posts
     async getPostsForPet(_: any, args: {pet_id: Types.ObjectId}) {
-        const posts = await Post.find({
-            pet: args.pet_id
+      const posts = await Post.find({
+        pet: args.pet_id
+      });
+      
+      return posts;
+    }
+  },
+
+  Mutation: {
+    // Create a pet
+    async createPet(_: any, args: PetArguments, context: Context) {
+
+      if (!context.req.user) {
+        return {
+          errors: ['You are not authorized to perform this action']
+        }
+      }
+      
+      try {
+        const pet = await Pet.create({
+          ...args,
+          owner: context.req.user._id
         });
 
-        return posts;
+        context.req.user.pets.push(pet._id);
+        await context.req.user.save();
 
-    }
+        return {
+          message: 'Pet added successfully!'
+        }
 
+      } catch (error) {
+        const errorMessage = errorHandler (error);
+
+        throw new GraphQLError(errorMessage);
+      }
     },
 
-    Mutation: {
-        async createPet(_: any, args: PetArguments, context: Context ) {
+    // Create a post for a pet
+    async createPost(_: any, args: PostArguments, context: Context) {
 
-            if (!context.req.user) {
-                return {
-                    errors: ['You are not authorized to perform this action']
-                }
-            }
-            try {
-                const pet = await Pet.create({
-                    ...args,
-                    owner: context.req.user._id
-                });
-                context.req.user.pets.push(pet._id);
-                await context.req.user.save();
-
-                return {
-                    message: 'Pet added successfully!'
-                }
-
-            } catch (error) {
-                return errorHandler(error);
-                
-            }
-
-        },
-
-        //create a post for a pet
-
-        async createPost(_:any, args: PostArguments, context: Context) {
-            
-            if (!context.req.user) {
-                return {
-                    errors: ['You are not authorized to perform this action']
-                }
-
+      if (!context.req.user) {
+        return {
+          errors: ['You are not authorized to perform this action']
         }
+      }
 
-        try {
-             const post = await Post.create(args);
-             await Pet.findByIdAndUpdate(args.pet, {
-                $push: {
-                    posts: post._id
-                }
-             })
+      try {
+        const post = await Post.create(args);
 
-            return {
-                message: 'Post created successfully!'
-            }
-        } catch (error) {
-            return errorHandler(error);
+        await Pet.findByIdAndUpdate(args.pet, {
+          $push: {
+            posts: post._id
+          }
+        });
+
+        return {
+          message: 'Post created successfully!'
         }
-        }
+      } catch (error: any) {
+       const errorMassage = errorHandler(error);
+
+       throw new GraphQLError(errorMassage);
+      }
     }
+  }
 }
 
 export default pet_resolvers;

@@ -9,19 +9,23 @@ const userSchema = new Schema({
     username: {
         type: String,
         unique: true,
+        required: true,
         minLength: [2, 'Your username must be at least 2 characters in length']
     },
     email: {
         type:String,
         unique: true,
+        required: true,
         match: [/.+@.+\..+/, 'Please enter a valid email address']
     },
     password: {
         type: String,
+        required: true,
         minLength: [6, 'Your password must be at least 6 characters in length']
     },
     pets: [{
         type: Schema.Types.ObjectId,
+        required: true,
         ref: 'Note'
     }]
 }, {

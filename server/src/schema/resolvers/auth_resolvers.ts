@@ -1,14 +1,15 @@
 import dotenv from 'dotenv';
 import jwt from 'jsonwebtoken';
 import { Types } from 'mongoose';
+import { GraphQLError } from 'graphql';
 
 dotenv.config();
 
-import { User as UserInterface } from '../../interfaces/User.js';
+import UserInterface from '../../interfaces/User';
+import Context from '../../interfaces/Context';
 import User from '../../models/User.js';
-import Context from '../../interfaces/Context.js';
 
-import {errorHandler} from '../helpers/index.js'
+import { errorHandler } from '../helpers/index.js';
 
 const { sign } = jwt;
 
@@ -20,90 +21,86 @@ function createToken(user_id: Types.ObjectId) {
 }
 
 const auth_resolvers = {
-    Query: {
-        // Get user
-        async getUser(_: any, __: any, context: Context) {
-
-            if (!context.req.user) {
-                return {
-                    user: null
-                };
-            }
-
-            return {
-                user: context.req.user
-            };
+  Query: {
+    // Get user
+    async getUser(_: any, __: any, context: Context) {
+      if (!context.req.user) {
+        return {
+          user: null
         }
+      }
+
+      return {
+        user: context.req.user
+      }
+    }
+  },
+
+  Mutation: {
+    /***  
+     *** AUTH RESOLVERS *** 
+    ***/
+
+    // Register a user
+    async registerUser(_: any, args: { username: string; email: string; password: string; }, context: Context) {
+      try {
+        const user = await User.create(args);
+        const token = createToken(user._id);
+
+        context.res.cookie('pet_token', token, {
+          httpOnly: true,
+          secure: process.env.PORT ? true : false,
+          sameSite: true
+        });
+
+        return {
+          user: user
+        };
+      } catch (error: any) {
+        const errorMessage = errorHandler(error);
+
+        throw new GraphQLError(errorMessage);
+      }
     },
 
-    Mutation: {
-        /***  
-         *** AUTH RESOLVERS *** 
-        ***/
+    // Log a user in
+    async loginUser(_: any, args: { email: string; password: string; }, context: Context) {
+      const user: UserInterface | null = await User.findOne({
+        email: args.email
+      });
 
-        // Register a user
-        async registerUser(_: any, args: { username: string; email: string; password: string; }, context: Context) {
-            try {
-                const user = await User.create(args);
+      if (!user) {
+        throw new GraphQLError('No user found with that email address');
+      }
 
-                const token = createToken(user._id);
-                context.res.cookie('pet_token', token, {
-                    httpOnly: true,
-                    secure: process.env.NODE_ENV === 'production',
-                    sameSite: 'strict'
-                });
+      const valid_pass = await user.validatePassword(args.password);
 
-                return {
-                    user: user
-                };
-            } catch (error: any) {
-                return errorHandler(error);
-            }
+      if (!valid_pass) {
+        throw new GraphQLError('Password is incorrect');
+      }
 
-        },
+      const token = createToken(user._id!);
 
-        // Log a user in
-        async loginUser(_: any, args: { email: string; password: string; }, context: Context) {
-            const user: UserInterface | null = await User.findOne({
-                email: args.email
-            });
+      context.res.cookie('pet_token', token, {
+        httpOnly: true,
+        secure: process.env.PORT ? true : false,
+        sameSite: true
+      });
 
-            if (!user) {
-                return {
-                    errors: ['No user found with that email address']
-                };
-            }
+      return {
+        user: user
+      }
+    },
 
-            const valid_pass = await user.validatePassword(args.password);
+    // Log out user
+    logoutUser(_: any, __: any, context: Context) {
+      context.res.clearCookie('pet_token');
 
-            if (!valid_pass) {
-                return {
-                    errors: ['Password is incorrect']
-                };
-            }
-
-            const token = createToken(user._id!);
-
-            context.res.cookie('pet_token', token, {
-                httpOnly: true,
-                secure: process.env.NODE_ENV === 'production',
-                sameSite: 'strict'
-            });
-
-            return {
-                user: user
-            };
-        },
-
-        // Log out user
-        logoutUser(_: any, __: any, context: Context) {
-            context.res.clearCookie('pet_token');
-
-            return {
-                user: null
-            };
-        }
+      return {
+        message: 'Logged out successfully!'
+      }
     }
+  }
 };
 
 export default auth_resolvers;
