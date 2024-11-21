@@ -47,3 +47,4 @@ nav a:hover:not(.navbar-brand) {
 .pet-output {
   grid-template-columns: repeat(3, 1fr);
 }
+

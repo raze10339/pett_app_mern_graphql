@@ -21,7 +21,7 @@ function Landing() {
         <h3 className="fw-light mt-5">See what pets are saying!</h3>
         <hr  />
 
-        {postData && postData.getAllPosts.length && (
+        {postData && !postData.getAllPosts.length && (
           <p>No posts have been added yet. Log in to create a post for your pet!</p>
         )}
 
