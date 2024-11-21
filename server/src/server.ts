@@ -3,6 +3,7 @@ import { ApolloServer } from '@apollo/server';
 import { expressMiddleware } from '@apollo/server/express4';
 import cookieParser from 'cookie-parser';
 import path from 'path';
+import dotenv from 'dotenv';
 
 
 
@@ -11,6 +12,8 @@ import connection from './config/connection.js';
 import typeDefs from './schema/typeDefs.js';
 import resolvers from './schema/resolvers.js';
 import { authenticate } from './services/auth.js';
+
+dotenv.config();
 
 const app = express();
 const PORT = process.env.PORT || 3333;
