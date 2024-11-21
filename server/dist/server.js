@@ -2,10 +2,13 @@ import express from 'express';
 import { ApolloServer } from '@apollo/server';
 import { expressMiddleware } from '@apollo/server/express4';
 import cookieParser from 'cookie-parser';
+import path from 'path';
+import dotenv from 'dotenv';
 import connection from './config/connection.js';
 import typeDefs from './schema/typeDefs.js';
 import resolvers from './schema/resolvers.js';
 import { authenticate } from './services/auth.js';
+dotenv.config();
 const app = express();
 const PORT = process.env.PORT || 3333;
 const server = new ApolloServer({
@@ -18,9 +21,19 @@ connection.once('open', async () => {
     app.use('/graphql', express.json(), 
     // Allow the resolvers to access client-side cookies through context.req.cookies
     cookieParser(), expressMiddleware(server, {
-        // Attach the context object for all resolvers - The return value of the function is what your context will be
+        // Attach the context object for all resolvers by referencing a function that returns an object with req and res, and if they have a valid cookie/jwt, req.user will be their user object
         context: authenticate
     }));
+    console.log('PROCESS PORT VARIABLE', process.env.PORT);
+    console.log('PORT VARIABLE');
+    if (process.env.PORT) {
+        console.log('Triggered');
+        const __dirname = path.dirname(new URL(import.meta.url).pathname);
+        app.use(express.static(path.join(__dirname, '../../client/dist')));
+        app.get('*', (_, res) => {
+            res.sendFile(path.join(__dirname, '../../client/dist/index.html'));
+        });
+    }
     app.listen(PORT, () => {
         console.log('Express server started on', PORT);
     });
