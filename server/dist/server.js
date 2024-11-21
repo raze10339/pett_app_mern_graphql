@@ -26,7 +26,7 @@ connection.once('open', async () => {
     }));
     console.log('PROCESS PORT VARIABLE', process.env.PORT);
     console.log('PORT VARIABLE');
-    if (process.env.PORT) {
+    if (true) {
         console.log('Triggered');
         const __dirname = path.dirname(new URL(import.meta.url).pathname);
         app.use(express.static(path.join(__dirname, '../../client/dist')));
