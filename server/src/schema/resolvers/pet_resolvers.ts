@@ -32,7 +32,7 @@ const pet_resolvers = {
 
     // Get user pets
     async getUserPets(_: any, __: any, context: Context) {
-      console.log('user pets');
+     
       if (!context.req.user) {
         return {
           errors: ['You are not authorized to perform this action']
