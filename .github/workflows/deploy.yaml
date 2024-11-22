@@ -30,7 +30,7 @@ jobs:
 
         - name: Run tests
           run: |  
-            npm test &
+            npm test
             npx fkill :10000
 
         
