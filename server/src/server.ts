@@ -16,7 +16,7 @@ import { authenticate } from './services/auth.js';
 dotenv.config();
 
 const app = express();
-const PORT = process.env.PORT || 3333;
+const PORT = Number(process.env.PORT) || 3333;
 
 const server = new ApolloServer({
   typeDefs,

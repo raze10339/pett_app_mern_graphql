@@ -1,6 +1,6 @@
 import { defineConfig } from "cypress";
 
-const is_prod = process.env.NODE_ENV === 'production';
+const is_prod = process.env.PORT;
 
 export default defineConfig({
   e2e: {
@@ -8,7 +8,7 @@ export default defineConfig({
     setupNodeEvents(on, config) {
      
     },
-    baseUrl: is_prod ? 'http://localhost:3333' : 'http://localhost:5173',
+    baseUrl: is_prod ? 'http://localhost:10000' : 'http://localhost:5173',
   
   },
 
