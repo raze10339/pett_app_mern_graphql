@@ -12,7 +12,6 @@ const pet_resolvers = {
         },
         // Get user pets
         async getUserPets(_, __, context) {
-            console.log('user pets');
             if (!context.req.user) {
                 return {
                     errors: ['You are not authorized to perform this action']
