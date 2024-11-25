@@ -16,7 +16,7 @@ import { authenticate } from './services/auth.js';
 dotenv.config();
 
 const app = express();
-const PORT = process.env.PORT || 3333;
+const PORT = Number(process.env.PORT) || 3333;
 
 const server = new ApolloServer({
   typeDefs,
@@ -25,23 +25,22 @@ const server = new ApolloServer({
 
 connection.once('open', async () => {
   await server.start();
-  
- 
+
+
   app.use(
     '/graphql',
     express.json(),
-   
+
     cookieParser(),
     expressMiddleware(server, {
-  
-      context: authenticate 
+
+      context: authenticate
     }),
   );
-  console.log('PROCESS PORT VARIABLE', process.env.PORT);
-  console.log('PORT VARIABLE')
+
 
   if (process.env.PORT) {
-    console.log('Triggered')
+  
     const __dirname = path.dirname(new URL(import.meta.url).pathname);
     app.use(express.static(path.join(__dirname, '../../client/dist')));
 
