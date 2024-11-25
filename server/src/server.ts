@@ -25,20 +25,19 @@ const server = new ApolloServer({
 
 connection.once('open', async () => {
   await server.start();
-  
- 
+
+
   app.use(
     '/graphql',
     express.json(),
-   
+
     cookieParser(),
     expressMiddleware(server, {
-  
-      context: authenticate 
+
+      context: authenticate
     }),
   );
-  console.log('PROCESS PORT VARIABLE', process.env.PORT);
-  console.log('PORT VARIABLE')
+
 
   if (process.env.PORT) {
     console.log('Triggered')
