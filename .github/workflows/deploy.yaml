@@ -42,13 +42,13 @@ jobs:
       - name: Merge pull request
         uses: actions/github-script@v6
         with:
-        script: |
-          github.rest.pulls.merge({
-          owner: context.repo.owner,
-          repo: context.repo.repo,
-          pull_number: context.payload.pull_request.number,
-          merge_method: 'merge'
-          })
+          script: |
+            github.rest.pulls.merge({
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            pull_number: context.payload.pull_request.number,
+            merge_method: 'merge'
+            })
 
 
 
