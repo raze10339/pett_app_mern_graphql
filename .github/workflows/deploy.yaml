@@ -44,12 +44,12 @@ jobs:
       uses: actions/github-script@v6
       with:
         script: |
-            github.rest.pulls.merge({
+          github.rest.pulls.merge({
             owner: context.repo.owner,
             repo: context.repo.repo,
             pull_number: context.payload.pull_request.number,
             merge_method: 'merge'
-              })
+          })
   
   deploy:
     runs-on: ubuntu-latest
