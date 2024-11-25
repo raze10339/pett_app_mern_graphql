@@ -4,6 +4,7 @@ import { expressMiddleware } from '@apollo/server/express4';
 import cookieParser from 'cookie-parser';
 import path from 'path';
 import dotenv from 'dotenv';
+import { fileURLToPath } from 'url';
 import connection from './config/connection.js';
 import typeDefs from './schema/typeDefs.js';
 import resolvers from './schema/resolvers.js';
@@ -21,8 +22,8 @@ connection.once('open', async () => {
         context: authenticate
     }));
     if (process.env.PORT) {
-        console.log('Triggered');
-        const __dirname = path.dirname(new URL(import.meta.url).pathname);
+        const __filename = fileURLToPath(import.meta.url);
+        const __dirname = path.dirname(__filename);
         app.use(express.static(path.join(__dirname, '../../client/dist')));
         app.get('*', (_, res) => {
             res.sendFile(path.join(__dirname, '../../client/dist/index.html'));
